@@ -1,0 +1,28 @@
+version: "3.7"
+services:
+  psql:
+    build: ./database
+    environment:
+      - POSTGRES_PASSWORD=${PSQL_ROOT_PASS}
+    ports:
+      - "5432:5432"
+
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - PSQL_URI=postgres://devops:${PSQL_PASS}@psql:5432/devops
+      - REDIS_URI=redis://redis:6379/0
+    ports:
+      - "8080:8080"
+    links:
+      - psql
+      - redis
+  
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+

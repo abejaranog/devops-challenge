@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: api
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - env:
+        - name: PSQL_PASS
+          valueFrom:
+            secretKeyRef:
+              key: PSQL_PASS
+              name: air-quality-env
+        - name: PSQL_URI
+          value: postgres://devops:$(PSQL_PASS)@psql-service:5432/devops
+        - name: REDIS_URI
+          value: redis://redis-service:6379/0
+        image: gcr.io/sandbox-abg/api_air:v2
+        name: api
+        ports:
+        - containerPort: 8080
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api
+  name: api
+spec:
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: api
